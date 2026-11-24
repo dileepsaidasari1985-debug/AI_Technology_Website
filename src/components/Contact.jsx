@@ -1,438 +1,370 @@
 import React, { useState } from 'react';
-import { 
-  Send, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Copy, 
-  Check, 
-  Github, 
-  Linkedin, 
-  Instagram, 
-  Twitter, 
-  Clock, 
-  AlertCircle, 
-  CheckCircle2, 
-  Loader2,
+import {
+  Send,
+  Mail,
+  Phone,
+  MapPin,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Building2,
   Sparkles,
-  MessageSquare
+  Copy,
+  Check
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
-import { portfolioData } from '../data/portfolioData';
-import { useToast } from './common/Toast';
+import { BRAND } from '../data/nexoraData';
 
 export const Contact = () => {
-  const { personalInfo, socialLinks } = portfolioData;
-  const { showToast } = useToast();
-
-  const [copiedEmail, setCopiedEmail] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    company: '',
     subject: '',
+    inquiryType: 'Product Inquiry',
     message: '',
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedStatus, setSubmittedStatus] = useState(null); // 'success' | 'error' | null
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [ticketId, setTicketId] = useState('');
+  const [copiedEmail, setCopiedEmail] = useState(false);
 
-  // Copy email utility
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText(personalInfo.email);
-    setCopiedEmail(true);
-    showToast('Email address copied to clipboard!', 'success');
-    setTimeout(() => setCopiedEmail(false), 2500);
-  };
+  const inquiryTypes = [
+    'Product Inquiry',
+    'AI Development',
+    'Business Partnership',
+    'Technical Support',
+    'General Inquiry'
+  ];
 
-  // Validate form fields
-  const validateForm = () => {
+  const validate = () => {
     const newErrors = {};
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full Name is required';
-    } else if (formData.fullName.trim().length < 2) {
-      newErrors.fullName = 'Name must be at least 2 characters';
+    if (!formData.fullName.trim() || formData.fullName.length < 2) {
+      newErrors.fullName = 'Full Name is required (minimum 2 characters)';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email Address is required';
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email.trim())) {
-        newErrors.email = 'Please provide a valid email address';
-      }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim() || !emailRegex.test(formData.email)) {
+      newErrors.email = 'Valid corporate or personal email address required';
     }
 
     if (!formData.subject.trim()) {
-      newErrors.subject = 'Subject is required';
-    } else if (formData.subject.trim().length < 3) {
-      newErrors.subject = 'Subject must be at least 3 characters';
+      newErrors.subject = 'Subject line is required';
     }
 
-    if (!formData.message.trim()) {
-      newErrors.message = 'Message cannot be empty';
-    } else if (formData.message.trim().length < 15) {
-      newErrors.message = 'Please provide at least 15 characters so I can understand your inquiry';
+    if (!formData.message.trim() || formData.message.length < 10) {
+      newErrors.message = 'Please provide message details (minimum 10 characters)';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle submit
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      showToast('Please fix the validation errors in the form.', 'error');
-      return;
-    }
+    if (!validate()) return;
 
     setIsSubmitting(true);
-    setSubmittedStatus(null);
 
-    // Simulate backend submission process with a delay
+    // Simulate realistic asynchronous backend API dispatch
     setTimeout(() => {
       setIsSubmitting(false);
-      setSubmittedStatus('success');
-      showToast('Message submitted successfully in demonstration mode!', 'success');
-      
-      // Trigger subtle celebration confetti
-      try {
-        confetti({
-          particleCount: 50,
-          spread: 60,
-          origin: { y: 0.8 },
-        });
-      } catch (err) {
-        // Safe fallback
-      }
-
-      // Reset form
-      setFormData({
-        fullName: '',
-        email: '',
-        subject: '',
-        message: '',
-      });
-      setErrors({});
+      setSubmissionSuccess(true);
+      const generatedTicket = `NEX-${Math.floor(10000 + Math.random() * 90000)}`;
+      setTicketId(generatedTicket);
     }, 1200);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear field-specific error as user types
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
-    }
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(BRAND.contactEmail);
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
   };
 
   return (
-    <section id="contact" className="py-24 relative overflow-hidden bg-navy-950/60">
-      {/* Background glow */}
-      <div className="absolute bottom-10 left-1/3 w-96 h-96 rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
-      <div className="absolute top-1/4 right-1/4 w-80 h-80 rounded-full bg-purple-600/10 blur-[130px] pointer-events-none" />
-
+    <section id="contact" className="py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Section Heading */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card border-cyan-500/30 text-cyan-400 text-xs font-mono uppercase tracking-wider mb-3">
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Let's Connect</span>
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full nexora-card border border-cyan-500/30 text-xs font-semibold text-cyan-400 mb-4">
+            <Mail className="w-3.5 h-3.5" />
+            <span>GLOBAL ENGAGEMENT</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Get In <span className="text-gradient">Touch</span>
+          <h2 className="text-3xl sm:text-5xl font-display font-extrabold text-white dark:text-white tracking-tight mb-4">
+            Connect With Our <span className="text-gradient">AI Solutions Team</span>
           </h2>
-          <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mt-3 rounded-full" />
-          <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto mt-4">
-            Interested in discussing an internship, project collaboration, or just want to say hi? Feel free to reach out anytime!
+          <p className="text-base sm:text-lg text-slate-300 dark:text-slate-300 leading-relaxed">
+            Whether you require custom foundation model training, sovereign on-premise installation, or enterprise API licensing, our engineers are ready to assist.
           </p>
         </div>
 
-        {/* Content Grid: Contact Details & Validated Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          
-          {/* Left Column: Direct Info Cards & Availability (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Info Card */}
-            <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/5 dark:border-cyan-500/20 shadow-xl space-y-6">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-cyan-400" />
-                <span>Contact Information</span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          {/* Left Column: Direct Contact Information & Global Nodes */}
+          <div className="lg:col-span-5 flex flex-col gap-6">
+            <div className="p-8 rounded-3xl nexora-card border border-white/10 shadow-xl">
+              <h3 className="text-xl font-display font-bold text-white mb-6">
+                Corporate Headquarters & Global Nodes
               </h3>
 
-              {/* Email Item with 1-click Copy */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-cyan-400/30 transition-colors flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-400 shrink-0">
+              <div className="space-y-6">
+                {/* Email Item */}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
-                  <div className="overflow-hidden">
-                    <div className="text-xs text-slate-400 font-mono">Email Address</div>
-                    <a
-                      href={`mailto:${personalInfo.email}`}
-                      className="text-xs sm:text-sm font-semibold text-white hover:text-cyan-300 transition-colors truncate block"
-                    >
-                      {personalInfo.email}
-                    </a>
+                  <div className="flex-1">
+                    <div className="text-xs font-mono text-slate-400">Official Inquiries</div>
+                    <div className="text-sm font-semibold text-white flex items-center gap-2 mt-0.5">
+                      <span>{BRAND.contactEmail}</span>
+                      <button
+                        onClick={handleCopyEmail}
+                        className="text-cyan-400 hover:text-cyan-300 transition-colors p-1"
+                        title="Copy email"
+                      >
+                        {copiedEmail ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={handleCopyEmail}
-                  className="p-2 rounded-lg glass-card text-slate-300 hover:text-cyan-400 hover:border-cyan-400/40 transition-colors shrink-0"
-                  title="Copy email"
-                  aria-label="Copy email address"
-                >
-                  {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                </button>
+                {/* Telephone Item */}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-mono text-slate-400">Direct Telephone</div>
+                    <div className="text-sm font-semibold text-white mt-0.5">{BRAND.phone}</div>
+                    <span className="text-[11px] text-slate-400">Mon - Fri: 8:00 AM - 6:00 PM PST</span>
+                  </div>
+                </div>
+
+                {/* Address Item */}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-mono text-slate-400">Global Innovation Center</div>
+                    <div className="text-sm font-semibold text-white mt-0.5">{BRAND.address}</div>
+                  </div>
+                </div>
               </div>
 
-              {/* Phone Item */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center text-purple-400 shrink-0">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-400 font-mono">Phone Number</div>
-                  <span className="text-xs sm:text-sm font-semibold text-white">
-                    {personalInfo.phone}
+              {/* Global Cloud Regions */}
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <span className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-3">
+                  Inference Clusters & Regional Nodes:
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono text-slate-300">
+                  <span className="p-2 rounded-lg bg-white/5 border border-white/5 flex items-center gap-1.5">
+                    🇺🇸 US-West (San Francisco)
+                  </span>
+                  <span className="p-2 rounded-lg bg-white/5 border border-white/5 flex items-center gap-1.5">
+                    🇬🇧 EU-West (London)
+                  </span>
+                  <span className="p-2 rounded-lg bg-white/5 border border-white/5 flex items-center gap-1.5">
+                    🇯🇵 AP-North (Tokyo)
+                  </span>
+                  <span className="p-2 rounded-lg bg-white/5 border border-white/5 flex items-center gap-1.5">
+                    🇸🇬 AP-South (Singapore)
                   </span>
                 </div>
               </div>
-
-              {/* Location & Timezone Item */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 shrink-0">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-400 font-mono">Location & Timezone</div>
-                  <span className="text-xs sm:text-sm font-semibold text-white">
-                    {personalInfo.location} ({personalInfo.timezone})
-                  </span>
-                </div>
-              </div>
-
-              {/* Social Channels Row */}
-              <div className="pt-2">
-                <h4 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  Online Profiles
-                </h4>
-                <div className="flex gap-2.5">
-                  {socialLinks.github && (
-                    <a
-                      href={socialLinks.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 rounded-xl glass-card text-slate-300 hover:text-cyan-400 hover:border-cyan-400/50 hover:scale-105 transition-all"
-                      title="GitHub"
-                    >
-                      <Github className="w-4 h-4" />
-                    </a>
-                  )}
-                  {socialLinks.linkedin && (
-                    <a
-                      href={socialLinks.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 rounded-xl glass-card text-slate-300 hover:text-cyan-400 hover:border-cyan-400/50 hover:scale-105 transition-all"
-                      title="LinkedIn"
-                    >
-                      <Linkedin className="w-4 h-4" />
-                    </a>
-                  )}
-                  {socialLinks.instagram && (
-                    <a
-                      href={socialLinks.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 rounded-xl glass-card text-slate-300 hover:text-purple-400 hover:border-purple-400/50 hover:scale-105 transition-all"
-                      title="Instagram"
-                    >
-                      <Instagram className="w-4 h-4" />
-                    </a>
-                  )}
-                  {socialLinks.twitter && (
-                    <a
-                      href={socialLinks.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 rounded-xl glass-card text-slate-300 hover:text-cyan-400 hover:border-cyan-400/50 hover:scale-105 transition-all"
-                      title="Twitter"
-                    >
-                      <Twitter className="w-4 h-4" />
-                    </a>
-                  )}
-                </div>
-              </div>
-
             </div>
-
-            {/* Quick Response Time Callout */}
-            <div className="p-4 rounded-xl glass-card border border-white/5 flex items-center gap-3">
-              <Clock className="w-5 h-5 text-cyan-400 shrink-0" />
-              <p className="text-xs text-slate-300 leading-relaxed">
-                <strong className="text-white">Fast Response Guaranteed:</strong> I typically reply to all student inquiries, recruiters, and collaborators within 24 hours.
-              </p>
-            </div>
-
           </div>
 
-          {/* Right Column: Interactive Form (7 cols) */}
+          {/* Right Column: Inquiry Form */}
           <div className="lg:col-span-7">
-            <div className="glass-card p-6 sm:p-8 rounded-2xl border border-white/5 dark:border-cyan-500/20 shadow-xl relative">
-              
-              <h3 className="text-xl font-bold text-white mb-2">
-                Send a Direct Message
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 mb-6">
-                Fill in the details below and I will get back to you promptly.
-              </p>
-
-              {/* Status Alert Banner */}
-              {submittedStatus === 'success' && (
-                <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400 mt-0.5" />
-                  <div>
-                    <strong className="block font-bold">Message Sent Successfully!</strong>
-                    <span>Thank you for reaching out. In live production, this form connects to EmailJS or your preferred serverless API.</span>
+            <div className="p-8 sm:p-10 rounded-3xl nexora-card border border-white/15 shadow-2xl relative">
+              {submissionSuccess ? (
+                <div className="text-center py-12 animate-fadeIn">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
+                  <h3 className="text-2xl font-display font-bold text-white mb-2">
+                    Inquiry Transmitted Successfully
+                  </h3>
+                  <p className="text-xs font-mono text-cyan-400 mb-4">
+                    Reference ID: #{ticketId}
+                  </p>
+                  <p className="text-sm text-slate-300 max-w-md mx-auto mb-6 leading-relaxed">
+                    Thank you, {formData.fullName}. Our AI Solutions Engineering team has received your request and will follow up with technical documentation within 1 business day.
+                  </p>
+                  <p className="text-[11px] font-mono text-slate-400 mb-6">
+                    *Client simulated dispatch confirmed. No external backend required for this demonstration.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSubmissionSuccess(false);
+                      setFormData({
+                        fullName: '',
+                        email: '',
+                        company: '',
+                        subject: '',
+                        inquiryType: 'Product Inquiry',
+                        message: '',
+                      });
+                    }}
+                    className="px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-cyan-500 hover:bg-cyan-600 transition-colors"
+                  >
+                    Submit Another Inquiry
+                  </button>
                 </div>
-              )}
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* Full Name */}
+                    <div>
+                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
+                        Full Name <span className="text-cyan-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Dr. Jordan Hayes"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        className={`w-full px-4 py-3 rounded-xl nexora-card border text-xs text-white placeholder-slate-400 focus:outline-none transition-colors ${
+                          errors.fullName ? 'border-rose-500' : 'border-white/10 focus:border-cyan-400'
+                        }`}
+                      />
+                      {errors.fullName && (
+                        <p className="text-[11px] text-rose-400 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.fullName}
+                        </p>
+                      )}
+                    </div>
 
-              {/* Form Element */}
-              <form onSubmit={handleSubmit} noValidate className="space-y-4">
-                
-                {/* Row 1: Full Name & Email */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Full Name */}
+                    {/* Email */}
+                    <div>
+                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
+                        Corporate Email <span className="text-cyan-400">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="jordan@enterprise.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className={`w-full px-4 py-3 rounded-xl nexora-card border text-xs text-white placeholder-slate-400 focus:outline-none transition-colors ${
+                          errors.email ? 'border-rose-500' : 'border-white/10 focus:border-cyan-400'
+                        }`}
+                      />
+                      {errors.email && (
+                        <p className="text-[11px] text-rose-400 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* Company Name */}
+                    <div>
+                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
+                        Company / Organization
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Global Technologies Inc."
+                        value={formData.company}
+                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl nexora-card border border-white/10 focus:border-cyan-400 text-xs text-white placeholder-slate-400 focus:outline-none transition-colors"
+                      />
+                    </div>
+
+                    {/* Inquiry Type */}
+                    <div>
+                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
+                        Inquiry Category
+                      </label>
+                      <select
+                        value={formData.inquiryType}
+                        onChange={(e) => setFormData({ ...formData, inquiryType: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl nexora-card border border-white/10 focus:border-cyan-400 text-xs text-white focus:outline-none transition-colors bg-navy-950"
+                      >
+                        {inquiryTypes.map((type) => (
+                          <option key={type} value={type} className="bg-navy-950 text-white">
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Subject */}
                   <div>
-                    <label className="block text-xs font-mono font-semibold text-slate-300 mb-1.5">
-                      Full Name <span className="text-rose-400">*</span>
+                    <label className="block text-xs font-mono text-slate-300 mb-1.5">
+                      Subject <span className="text-cyan-400">*</span>
                     </label>
                     <input
                       type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      placeholder="e.g. Jordan Smith"
-                      className={`w-full px-4 py-2.5 rounded-xl glass-card border text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors ${
-                        errors.fullName ? 'border-rose-500/80' : 'border-white/10 focus:border-cyan-400'
+                      placeholder="e.g. Enterprise RAG pipeline fine-tuning & pricing inquiry"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      className={`w-full px-4 py-3 rounded-xl nexora-card border text-xs text-white placeholder-slate-400 focus:outline-none transition-colors ${
+                        errors.subject ? 'border-rose-500' : 'border-white/10 focus:border-cyan-400'
                       }`}
                     />
-                    {errors.fullName && (
-                      <p className="text-rose-400 text-[11px] mt-1 flex items-center gap-1">
+                    {errors.subject && (
+                      <p className="text-[11px] text-rose-400 mt-1 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        <span>{errors.fullName}</span>
+                        {errors.subject}
                       </p>
                     )}
                   </div>
 
-                  {/* Email Address */}
+                  {/* Message */}
                   <div>
-                    <label className="block text-xs font-mono font-semibold text-slate-300 mb-1.5">
-                      Email Address <span className="text-rose-400">*</span>
+                    <label className="block text-xs font-mono text-slate-300 mb-1.5">
+                      Message & Technical Requirements <span className="text-cyan-400">*</span>
                     </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="e.g. jordan@example.com"
-                      className={`w-full px-4 py-2.5 rounded-xl glass-card border text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors ${
-                        errors.email ? 'border-rose-500/80' : 'border-white/10 focus:border-cyan-400'
+                    <textarea
+                      rows={4}
+                      placeholder="Describe your current system volume, model requirements, latency targets, and compliance requirements..."
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      className={`w-full px-4 py-3 rounded-xl nexora-card border text-xs text-white placeholder-slate-400 focus:outline-none transition-colors resize-none ${
+                        errors.message ? 'border-rose-500' : 'border-white/10 focus:border-cyan-400'
                       }`}
                     />
-                    {errors.email && (
-                      <p className="text-rose-400 text-[11px] mt-1 flex items-center gap-1">
+                    {errors.message && (
+                      <p className="text-[11px] text-rose-400 mt-1 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        <span>{errors.email}</span>
+                        {errors.message}
                       </p>
                     )}
                   </div>
-                </div>
 
-                {/* Row 2: Subject */}
-                <div>
-                  <label className="block text-xs font-mono font-semibold text-slate-300 mb-1.5">
-                    Subject <span className="text-rose-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    placeholder="e.g. Internship Inquiry / Project Discussion"
-                    className={`w-full px-4 py-2.5 rounded-xl glass-card border text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors ${
-                      errors.subject ? 'border-rose-500/80' : 'border-white/10 focus:border-cyan-400'
-                    }`}
-                  />
-                  {errors.subject && (
-                    <p className="text-rose-400 text-[11px] mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{errors.subject}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Row 3: Message */}
-                <div>
-                  <label className="block text-xs font-mono font-semibold text-slate-300 mb-1.5">
-                    Your Message <span className="text-rose-400">*</span>
-                  </label>
-                  <textarea
-                    rows={5}
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    placeholder="Write your message here..."
-                    className={`w-full px-4 py-3 rounded-xl glass-card border text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors resize-none ${
-                      errors.message ? 'border-rose-500/80' : 'border-white/10 focus:border-cyan-400'
-                    }`}
-                  />
-                  {errors.message && (
-                    <p className="text-rose-400 text-[11px] mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{errors.message}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Submit Button with Loading Spinner */}
-                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 text-white font-semibold text-xs sm:text-sm shadow-[0_4px_25px_rgba(56,189,248,0.35)] hover:shadow-[0_4px_30px_rgba(56,189,248,0.55)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-60 disabled:pointer-events-none"
+                    className="w-full py-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 shadow-[0_0_20px_rgba(0,210,255,0.4)] hover:shadow-[0_0_30px_rgba(0,210,255,0.7)] hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Sending Message...</span>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Transmitting Inquiry via Secure TLS...</span>
                       </>
                     ) : (
                       <>
+                        <span>Submit Enterprise Inquiry</span>
                         <Send className="w-4 h-4" />
-                        <span>Send Message</span>
                       </>
                     )}
                   </button>
-                </div>
 
-              </form>
-
+                  <p className="text-center text-[10px] font-mono text-slate-400">
+                    *Client simulated dispatch for demonstration. Data is verified locally with zero external network leakage.
+                  </p>
+                </form>
+              )}
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
   );
 };
-

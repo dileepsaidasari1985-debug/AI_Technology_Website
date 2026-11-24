@@ -1,55 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Sun, 
-  Moon, 
-  Menu, 
-  X, 
-  FileText, 
-  Share2, 
-  Sparkles, 
-  Command, 
-  Calendar,
-  Code
+import {
+  Menu,
+  X,
+  Sparkles,
+  Sun,
+  Moon,
+  Search,
+  Globe,
+  ChevronDown,
+  ArrowRight,
+  ShieldCheck,
+  Cpu
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { portfolioData } from '../data/portfolioData';
-import { useToast } from './common/Toast';
-import { sounds } from '../utils/soundEffects';
+import { BRAND, TRANSLATIONS } from '../data/nexoraData';
 
-export const Navbar = ({ onOpenResume, onOpenScheduleChat }) => {
+export const Navbar = ({
+  onOpenDemoRequest,
+  onOpenSearch,
+  currentLang = 'en',
+  onChangeLang,
+}) => {
   const { themeMode, toggleThemeMode } = useTheme();
-  const { showToast } = useToast();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero');
+
+  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Playground', href: '#playground' },
-    { name: 'Achievements', href: '#achievements' },
-    { name: 'Education', href: '#education' },
-    { name: 'Certifications', href: '#certifications' },
-    { name: 'Blog', href: '#blog' },
-    { name: 'Contact', href: '#contact' },
+    { name: t.navHome, href: '#hero', id: 'hero' },
+    { name: t.navAbout, href: '#about', id: 'about' },
+    { name: t.navProducts, href: '#products', id: 'products' },
+    { name: t.navPlayground, href: '#playground', id: 'playground', badge: 'Interactive' },
+    { name: t.navFeatures, href: '#features', id: 'features' },
+    { name: t.navApplications, href: '#applications', id: 'applications' },
+    { name: t.navTech, href: '#technology', id: 'technology' },
+    { name: t.navTeam, href: '#team', id: 'team' },
+    { name: t.navPricing, href: '#pricing', id: 'pricing' },
+    { name: t.navBlog, href: '#blog', id: 'blog' },
+    { name: t.navContact, href: '#contact', id: 'contact' },
   ];
 
-  // Detect scroll for glass navbar & active link spy
+  const languages = [
+    { code: 'en', label: 'English', flag: '🇺🇸' },
+    { code: 'es', label: 'Español', flag: '🇪🇸' },
+    { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+    { code: 'fr', label: 'Français', flag: '🇫🇷' },
+    { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  ];
+
+  // Scroll spy & background blur
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
 
-      const sections = navLinks.map(link => link.href.substring(1));
-      const scrollPosition = window.scrollY + 140;
+      // Check current section
+      const sections = navLinks.map((l) => l.id);
+      const scrollPos = window.scrollY + 120;
 
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = document.getElementById(sections[i]);
-        if (section) {
-          const top = section.offsetTop;
-          if (scrollPosition >= top) {
-            setActiveSection(sections[i]);
+      for (const sectionId of sections) {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            setActiveSection(sectionId);
             break;
           }
         }
@@ -58,231 +79,250 @@ export const Navbar = ({ onOpenResume, onOpenScheduleChat }) => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [navLinks]);
 
-  // Share portfolio feature
-  const handleShare = async () => {
-    sounds.playClick();
-    const shareData = {
-      title: `${portfolioData.personalInfo.fullName} | Portfolio`,
-      text: `Check out ${portfolioData.personalInfo.fullName}'s student portfolio!`,
-      url: window.location.href,
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        showToast('Shared successfully!', 'success');
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          copyToClipboard();
-        }
+  // Keyboard shortcut Ctrl+K to open search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        onOpenSearch?.();
       }
-    } else {
-      copyToClipboard();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onOpenSearch]);
+
+  const handleNavClick = (e, href) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const target = document.querySelector(href);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Portfolio URL copied to clipboard!', 'success');
-  };
-
-  const triggerCmdK = () => {
-    sounds.playClick();
-    const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true });
-    window.dispatchEvent(event);
   };
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'glass-nav py-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]'
+          ? 'bg-navy-950/85 dark:bg-navy-950/90 backdrop-blur-xl border-b border-white/10 dark:border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] py-3'
           : 'bg-transparent py-5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          {/* Logo / Initials */}
+          {/* Brand Logo */}
           <a
-            href="#home"
-            className="flex items-center gap-2.5 group focus:outline-none"
-            aria-label="Back to home"
-            onClick={() => sounds.playClick()}
+            href="#hero"
+            onClick={(e) => handleNavClick(e, '#hero')}
+            className="flex items-center gap-3 group focus:outline-none"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 p-[2px] transition-transform duration-300 group-hover:scale-105 shadow-[0_0_15px_rgba(56,189,248,0.4)]">
-              <div className="w-full h-full bg-navy-950 dark:bg-navy-900 rounded-[10px] flex items-center justify-center">
-                <span className="font-mono font-black text-sm text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 tracking-wider">
-                  {portfolioData.personalInfo.initials}
-                </span>
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-violet-600 p-[1.5px] transition-transform duration-300 group-hover:scale-105 shadow-[0_0_20px_rgba(0,210,255,0.4)]">
+              <div className="w-full h-full bg-navy-950 rounded-[10px] flex items-center justify-center">
+                <Cpu className="w-5 h-5 text-cyan-400 group-hover:rotate-12 transition-transform duration-300" />
               </div>
             </div>
-            <div className="hidden sm:block">
-              <span className="font-bold text-base text-slate-100 group-hover:text-cyan-400 transition-colors">
-                {portfolioData.personalInfo.fullName}
-              </span>
-              <span className="block text-[10px] uppercase tracking-wider text-slate-400 font-mono">
-                Student & Dev
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="font-display font-extrabold text-xl tracking-tight text-white dark:text-white group-hover:text-cyan-400 transition-colors">
+                  {BRAND.name}
+                </span>
+                <span className="px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                  AI 3.0
+                </span>
+              </div>
+              <span className="text-[10px] tracking-wider uppercase text-slate-400 -mt-0.5 hidden sm:block">
+                {BRAND.tagline}
               </span>
             </div>
           </a>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+          <nav className="hidden xl:flex items-center space-x-1">
             {navLinks.map((link) => {
-              const isActive = activeSection === link.href.substring(1);
+              const isActive = activeSection === link.id;
               return (
                 <a
-                  key={link.name}
+                  key={link.id}
                   href={link.href}
-                  onClick={() => sounds.playClick()}
-                  className={`px-3 py-1.5 rounded-lg text-xs xl:text-sm font-medium transition-all duration-200 relative ${
+                  onClick={(e) => handleNavClick(e, link.href)}
+                  className={`relative px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
                     isActive
-                      ? 'text-cyan-400 font-semibold'
+                      ? 'text-cyan-400 bg-cyan-500/10 shadow-[0_0_12px_rgba(0,210,255,0.15)] font-semibold'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   {link.name}
+                  {link.badge && (
+                    <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-gradient-to-r from-violet-500 to-pink-500 text-white animate-pulse">
+                      {link.badge}
+                    </span>
+                  )}
                   {isActive && (
-                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full" />
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
                   )}
                 </a>
               );
             })}
           </nav>
 
-          {/* Action Buttons (Cmd+K, Schedule, Share, Theme Toggle, Resume, Mobile Menu) */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            
-            {/* Command Palette Trigger Button */}
+          {/* Right Controls: Search, Lang, Theme, Get Started */}
+          <div className="hidden lg:flex items-center gap-2.5">
+            {/* Smart Search Trigger */}
             <button
-              onClick={triggerCmdK}
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg glass-card text-xs text-slate-300 hover:text-cyan-400 hover:border-cyan-400/40 transition-colors"
-              title="Quick Search (Ctrl + K / Cmd + K)"
+              onClick={onOpenSearch}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-cyan-400/40 text-slate-300 hover:text-white text-xs transition-all duration-200"
+              title="Search website (Ctrl + K)"
             >
-              <Command className="w-3.5 h-3.5 text-cyan-400" />
-              <kbd className="text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
+              <Search className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-slate-400 hidden 2xl:inline">Search...</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] bg-black/40 border border-white/10 rounded text-slate-400">
                 ⌘K
               </kbd>
             </button>
 
-            {/* Schedule Chat button */}
-            <button
-              onClick={() => {
-                sounds.playClick();
-                onOpenScheduleChat();
-              }}
-              title="Schedule a Chat / Meeting"
-              className="hidden md:inline-flex p-2 rounded-lg glass-card text-slate-300 hover:text-purple-400 hover:border-purple-400/40 transition-all duration-200"
-              aria-label="Schedule a Chat"
-            >
-              <Calendar className="w-4 h-4" />
-            </button>
+            {/* Language Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 text-slate-300 text-xs transition-colors"
+              >
+                <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="uppercase font-semibold">{currentLang}</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
 
-            {/* Share button */}
-            <button
-              onClick={handleShare}
-              title="Share Portfolio"
-              className="p-2 rounded-lg glass-card text-slate-300 hover:text-cyan-400 hover:border-cyan-400/40 transition-all duration-200"
-              aria-label="Share Portfolio"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
+              {langDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-36 py-1.5 rounded-xl nexora-card border border-white/10 shadow-2xl z-50">
+                  {languages.map((l) => (
+                    <button
+                      key={l.code}
+                      onClick={() => {
+                        onChangeLang?.(l.code);
+                        setLangDropdownOpen(false);
+                      }}
+                      className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-white/10 transition-colors ${
+                        currentLang === l.code ? 'text-cyan-400 font-bold bg-cyan-500/10' : 'text-slate-300'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{l.flag}</span>
+                        <span>{l.label}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            {/* Dark/Light Mode Toggle */}
+            {/* Theme Switcher */}
             <button
-              onClick={() => {
-                sounds.playClick();
-                toggleThemeMode();
-              }}
-              title={themeMode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="p-2 rounded-lg glass-card text-slate-300 hover:text-amber-400 hover:border-amber-400/40 transition-all duration-200"
-              aria-label="Toggle Theme Mode"
+              onClick={toggleThemeMode}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white transition-colors"
+              title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} mode`}
             >
               {themeMode === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
+                <Sun className="w-4 h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-indigo-400" />
+                <Moon className="w-4 h-4 text-cyan-400" />
               )}
             </button>
 
-            {/* Resume Button */}
+            {/* Get Started Button */}
             <button
-              onClick={() => {
-                sounds.playClick();
-                onOpenResume();
-              }}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-400/40 text-cyan-300 hover:text-white hover:border-cyan-400 hover:from-cyan-500/30 hover:to-purple-500/30 text-xs sm:text-sm font-medium transition-all duration-200 shadow-[0_0_15px_rgba(56,189,248,0.15)]"
+              onClick={onOpenDemoRequest}
+              className="relative group overflow-hidden px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 shadow-[0_0_20px_rgba(0,210,255,0.35)] hover:shadow-[0_0_28px_rgba(0,210,255,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5"
             >
-              <FileText className="w-4 h-4" />
-              <span>Resume</span>
+              <span>{t.getStarted}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+
+          {/* Mobile Hamburger & Quick Theme */}
+          <div className="flex xl:hidden items-center gap-2">
+            <button
+              onClick={onOpenSearch}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300"
+              title="Search"
+            >
+              <Search className="w-4 h-4 text-cyan-400" />
             </button>
 
-            {/* Mobile Hamburger Menu Toggle */}
             <button
-              onClick={() => {
-                sounds.playClick();
-                setMobileMenuOpen(!mobileMenuOpen);
-              }}
-              className="lg:hidden p-2 rounded-lg glass-card text-slate-300 hover:text-white"
-              aria-label="Toggle navigation menu"
+              onClick={toggleThemeMode}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {themeMode === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-cyan-400" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-200 hover:text-white"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer Navigation Menu */}
+      {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden glass-nav border-b border-white/10 px-4 pt-3 pb-6 mt-3 animate-slide-up shadow-2xl">
-          <div className="flex flex-col gap-1">
-            {navLinks.map((link) => {
-              const isActive = activeSection === link.href.substring(1);
-              return (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => {
-                    sounds.playClick();
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-between ${
-                    isActive
-                      ? 'bg-cyan-500/10 text-cyan-400 border-l-2 border-cyan-400'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <span>{link.name}</span>
-                  {isActive && <Sparkles className="w-3.5 h-3.5 text-cyan-400" />}
-                </a>
-              );
-            })}
+        <div className="xl:hidden bg-navy-950/98 border-b border-white/10 px-4 pt-4 pb-6 shadow-2xl backdrop-blur-2xl animate-fadeIn">
+          <div className="flex flex-col space-y-2">
+            {navLinks.map((link) => (
+              <a
+                key={link.id}
+                href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-between ${
+                  activeSection === link.id
+                    ? 'text-cyan-400 bg-cyan-500/10 font-semibold'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>{link.name}</span>
+                {link.badge && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-violet-500 to-pink-500 text-white">
+                    {link.badge}
+                  </span>
+                )}
+              </a>
+            ))}
 
-            <div className="pt-3 mt-2 border-t border-white/10 flex flex-col gap-2">
+            <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
+              {/* Language selection on mobile */}
+              <div className="flex items-center justify-between px-2">
+                <span className="text-xs text-slate-400">Language:</span>
+                <div className="flex items-center gap-1.5">
+                  {languages.map((l) => (
+                    <button
+                      key={l.code}
+                      onClick={() => onChangeLang?.(l.code)}
+                      className={`px-2 py-1 rounded text-xs ${
+                        currentLang === l.code ? 'bg-cyan-500 text-white font-bold' : 'bg-white/5 text-slate-300'
+                      }`}
+                    >
+                      {l.code.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={() => {
-                  sounds.playClick();
                   setMobileMenuOpen(false);
-                  onOpenScheduleChat();
+                  onOpenDemoRequest?.();
                 }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg glass-card border border-purple-400/30 text-purple-300 font-medium text-sm"
+                className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 shadow-[0_0_20px_rgba(0,210,255,0.35)] flex items-center justify-center gap-2"
               >
-                <Calendar className="w-4 h-4" />
-                Schedule a Chat / Meeting
-              </button>
-
-              <button
-                onClick={() => {
-                  sounds.playClick();
-                  setMobileMenuOpen(false);
-                  onOpenResume();
-                }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-medium text-sm shadow-md"
-              >
-                <FileText className="w-4 h-4" />
-                View & Download Resume
+                <span>{t.getStarted}</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>

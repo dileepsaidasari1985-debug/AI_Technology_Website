@@ -2,28 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 
 /**
- * Floating back-to-top button with circular scroll progress ring.
+ * Floating Back To Top Button
+ * Appears when the user scrolls past 400px and scrolls smoothly to the top.
  */
 export const BackToTop = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [scrollPercentage, setScrollPercentage] = useState(0);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const toggleVisibility = () => {
-      const scrolled = window.scrollY;
-      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      if (height > 0) {
-        setScrollPercentage(Math.round((scrolled / height) * 100));
-      }
-      if (scrolled > 300) {
-        setIsVisible(true);
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setVisible(true);
       } else {
-        setIsVisible(false);
+        setVisible(false);
       }
     };
 
-    window.addEventListener('scroll', toggleVisibility, { passive: true });
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToTop = () => {
@@ -33,49 +28,15 @@ export const BackToTop = () => {
     });
   };
 
-  if (!isVisible) return null;
-
-  const circumference = 2 * Math.PI * 18;
-  const strokeDashoffset = circumference - (scrollPercentage / 100) * circumference;
+  if (!visible) return null;
 
   return (
     <button
       onClick={scrollToTop}
-      aria-label="Scroll back to top"
-      className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full glass-card flex items-center justify-center text-cyan-400 hover:text-white transition-all duration-300 hover:scale-110 shadow-[0_8px_25px_rgba(0,0,0,0.3)] hover:shadow-[0_0_20px_rgba(56,189,248,0.5)] group"
+      aria-label="Back to Top"
+      className="fixed bottom-7 right-7 z-40 p-3 rounded-xl nexora-card border border-cyan-500/30 text-cyan-400 hover:text-white hover:border-cyan-400 shadow-[0_4px_25px_rgba(0,210,255,0.25)] transition-all duration-300 hover:scale-110 active:scale-95 group"
     >
-      {/* Circular progress SVG */}
-      <svg className="absolute w-12 h-12 -rotate-90 pointer-events-none" viewBox="0 0 44 44">
-        <circle
-          cx="22"
-          cy="22"
-          r="18"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          fill="transparent"
-          className="text-slate-700/40 dark:text-slate-700/60"
-        />
-        <circle
-          cx="22"
-          cy="22"
-          r="18"
-          stroke="url(#progress-gradient)"
-          strokeWidth="2.5"
-          fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          className="transition-all duration-150"
-        />
-        <defs>
-          <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#a855f7" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+      <ArrowUp className="w-5 h-5 group-hover:-translate-y-1 transition-transform duration-200" />
     </button>
   );
 };
-

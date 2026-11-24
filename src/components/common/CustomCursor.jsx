@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme } from '../../context/ThemeContext';
 
 /**
- * Custom cursor effect for desktop devices.
- * Features an inner dot and a smooth trailing outer follower circle.
- * Automatically disabled on touch screens and when cursorEnabled is false.
+ * Responsive Animated Custom Cursor for Desktop Devices
+ * Gracefully disabled on touchscreens to preserve battery and touch usability.
  */
 export const CustomCursor = () => {
-  const { cursorEnabled } = useTheme();
   const [position, setPosition] = useState({ x: -100, y: -100 });
   const [trailingPos, setTrailingPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
@@ -16,7 +13,7 @@ export const CustomCursor = () => {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
-    // Detect touch device
+    // Check if device supports fine cursor or touch
     if (window.matchMedia('(pointer: coarse)').matches) {
       setIsTouchDevice(true);
       return;
@@ -34,7 +31,7 @@ export const CustomCursor = () => {
         target.closest('select') ||
         target.closest('textarea') ||
         target.closest('[role="button"]') ||
-        target.closest('.interactive-hover')
+        target.closest('.interactive-card')
       );
       setIsPointer(isInteractive);
     };
@@ -59,49 +56,48 @@ export const CustomCursor = () => {
     };
   }, [isVisible]);
 
-  // Smooth trailing effect
+  // Smooth lagging follower ring
   useEffect(() => {
-    if (isTouchDevice || !cursorEnabled) return;
+    if (isTouchDevice) return;
     let animationFrameId;
 
     const followCursor = () => {
-      setTrailingPos(prev => ({
-        x: prev.x + (position.x - prev.x) * 0.18,
-        y: prev.y + (position.y - prev.y) * 0.18,
+      setTrailingPos((prev) => ({
+        x: prev.x + (position.x - prev.x) * 0.22,
+        y: prev.y + (position.y - prev.y) * 0.22,
       }));
       animationFrameId = requestAnimationFrame(followCursor);
     };
 
     animationFrameId = requestAnimationFrame(followCursor);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [position, isTouchDevice, cursorEnabled]);
+  }, [position, isTouchDevice]);
 
-  if (isTouchDevice || !isVisible || !cursorEnabled) return null;
+  if (isTouchDevice || !isVisible) return null;
 
   return (
     <>
-      {/* Inner Dot */}
+      {/* Precision Inner Glowing Dot */}
       <div
-        className="fixed top-0 left-0 w-2.5 h-2.5 bg-cyan-400 rounded-full pointer-events-none z-[9999] transition-transform duration-75 transform -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+        className="fixed top-0 left-0 w-2 h-2 bg-cyan-400 rounded-full pointer-events-none z-[9999] transition-transform duration-75 shadow-[0_0_10px_rgba(56,189,248,0.9)]"
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
-          transform: `translate(-50%, -50%) scale(${isHovered ? 1.5 : isPointer ? 0.5 : 1})`,
+          transform: `translate(-50%, -50%) scale(${isHovered ? 1.4 : isPointer ? 0.6 : 1})`,
         }}
       />
-      {/* Outer Follower Ring */}
+      {/* Outer Follower Ring with Halo */}
       <div
         className={`fixed top-0 left-0 pointer-events-none z-[9998] rounded-full transition-all duration-200 -translate-x-1/2 -translate-y-1/2 border ${
           isPointer
-            ? 'w-12 h-12 border-cyan-400/80 bg-cyan-400/15 backdrop-blur-[1px] shadow-[0_0_20px_rgba(56,189,248,0.3)]'
+            ? 'w-12 h-12 border-cyan-400/80 bg-cyan-400/15 backdrop-blur-[1px] shadow-[0_0_25px_rgba(56,189,248,0.35)]'
             : isHovered
             ? 'w-10 h-10 border-purple-400/90 bg-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
-            : 'w-8 h-8 border-cyan-400/40 bg-cyan-500/5'
+            : 'w-7 h-7 border-cyan-400/40 bg-cyan-500/5'
         }`}
         style={{
           left: `${trailingPos.x}px`,
           top: `${trailingPos.y}px`,
-          transform: 'translate(-50%, -50%)',
         }}
       />
     </>

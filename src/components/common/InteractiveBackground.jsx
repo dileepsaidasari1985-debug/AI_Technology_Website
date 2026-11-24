@@ -2,24 +2,15 @@ import React, { useEffect, useRef } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 /**
- * Dynamic, colorful animated background component.
- * Allows user to toggle between:
- * - 'mesh': Rich glowing animated gradient orbs
- * - 'particles': Canvas interactive starfield particle mesh
- * - 'subtle': Minimal ambient glow
+ * NEXORA AI - Interactive Neural Network & Particle Mesh Canvas
+ * Simulates active synapses, neural nodes, and mouse proximity attraction.
  */
 export const InteractiveBackground = () => {
-  const { currentPresetConfig, bgEffect, bgIntensity, reducedMotion } = useTheme();
+  const { themeMode, presetConfig } = useTheme();
   const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: -1000, y: -1000, radius: 160 });
 
-  // Calculate opacity multiplier from intensity
-  const opacityMultiplier =
-    bgIntensity === 'vibrant' ? 1 : bgIntensity === 'balanced' ? 0.65 : 0.35;
-
-  // Canvas particle starfield effect
   useEffect(() => {
-    if (bgEffect !== 'particles') return;
-
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -34,133 +25,129 @@ export const InteractiveBackground = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
     };
+
+    const handleMouseMove = (e) => {
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.x = -1000;
+      mouseRef.current.y = -1000;
+    };
+
     window.addEventListener('resize', handleResize);
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
 
-    const particleCount = Math.floor(Math.min(width, 1400) / 18);
-    const particles = [];
-    const color = currentPresetConfig.primaryColor || '#00d2ff';
-    const altColor = currentPresetConfig.secondaryColor || '#a855f7';
+    // Particle nodes count based on screen width
+    const nodeCount = Math.floor(Math.min(width, 1600) / 16);
+    const nodes = [];
 
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
+    const isLight = themeMode === 'light';
+    const primary = presetConfig?.primaryColor || (isLight ? '#0284c7' : '#00d2ff');
+    const secondary = presetConfig?.secondaryColor || (isLight ? '#4f46e5' : '#8b5cf6');
+    const accent = presetConfig?.accentColor || (isLight ? '#7c3aed' : '#ec4899');
+
+    const colors = [primary, secondary, accent];
+
+    for (let i = 0; i < nodeCount; i++) {
+      nodes.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * (reducedMotion ? 0 : 0.6),
-        vy: (Math.random() - 0.5) * (reducedMotion ? 0 : 0.6),
-        radius: Math.random() * 2 + 0.8,
-        color: Math.random() > 0.4 ? color : altColor,
-        alpha: Math.random() * 0.6 + 0.2,
+        vx: (Math.random() - 0.5) * 0.45,
+        vy: (Math.random() - 0.5) * 0.45,
+        radius: Math.random() * 2.2 + 0.9,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        baseAlpha: Math.random() * 0.5 + 0.25,
+        pulseSpeed: 0.02 + Math.random() * 0.03,
+        pulseVal: Math.random() * Math.PI,
       });
     }
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Draw particles
-      particles.forEach((p, idx) => {
-        p.x += p.vx;
-        p.y += p.vy;
+      const mouse = mouseRef.current;
 
-        if (p.x < 0) p.x = width;
-        if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        if (p.y > height) p.y = 0;
+      // Draw and update nodes
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
 
+        node.x += node.vx;
+        node.y += node.vy;
+        node.pulseVal += node.pulseSpeed;
+
+        // Wrap around boundaries
+        if (node.x < 0) node.x = width;
+        if (node.x > width) node.x = 0;
+        if (node.y < 0) node.y = height;
+        if (node.y > height) node.y = 0;
+
+        // Mouse interaction (subtle attraction / deflection)
+        const dxMouse = mouse.x - node.x;
+        const dyMouse = mouse.y - node.y;
+        const distMouse = Math.hypot(dxMouse, dyMouse);
+
+        if (distMouse < mouse.radius) {
+          const force = (mouse.radius - distMouse) / mouse.radius;
+          node.x -= (dxMouse / distMouse) * force * 1.5;
+          node.y -= (dyMouse / distMouse) * force * 1.5;
+        }
+
+        const alphaPulse = node.baseAlpha + Math.sin(node.pulseVal) * 0.2;
+        const finalAlpha = Math.max(0.1, Math.min(0.85, alphaPulse)) * (isLight ? 0.35 : 0.7);
+
+        // Draw node
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha * opacityMultiplier;
+        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+        ctx.fillStyle = node.color;
+        ctx.globalAlpha = finalAlpha;
         ctx.fill();
 
-        // Connect nearby particles
-        for (let j = idx + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if (dist < 100) {
+        // Connect nearby nodes to form neural network synapses
+        for (let j = i + 1; j < nodes.length; j++) {
+          const other = nodes[j];
+          const dist = Math.hypot(node.x - other.x, node.y - other.y);
+
+          if (dist < 115) {
             ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = p.color;
-            ctx.globalAlpha = ((100 - dist) / 100) * 0.15 * opacityMultiplier;
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(other.x, other.y);
+            const lineAlpha = ((115 - dist) / 115) * 0.22 * (isLight ? 0.3 : 0.85);
+            ctx.strokeStyle = node.color;
+            ctx.globalAlpha = lineAlpha;
+            ctx.lineWidth = 0.85;
             ctx.stroke();
           }
         }
-      });
-
-      if (!reducedMotion) {
-        animationFrameId = requestAnimationFrame(render);
       }
+
+      animationFrameId = requestAnimationFrame(render);
     };
 
     render();
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [bgEffect, currentPresetConfig, reducedMotion, opacityMultiplier]);
-
-  const { primaryColor, secondaryColor, accentColor } = currentPresetConfig;
+  }, [themeMode, presetConfig]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* 1. Canvas particle mesh (if selected) */}
-      {bgEffect === 'particles' && (
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-      )}
+      {/* Background ambient radial gradients */}
+      <div className="absolute -top-[20%] -left-[10%] w-[55vw] h-[55vw] rounded-full bg-cyan-600/10 dark:bg-cyan-500/15 blur-[120px] pointer-events-none animate-pulse-slow" />
+      <div className="absolute top-[35%] -right-[15%] w-[50vw] h-[50vw] rounded-full bg-purple-600/10 dark:bg-purple-600/15 blur-[140px] pointer-events-none animate-float" />
+      <div className="absolute -bottom-[15%] left-[25%] w-[45vw] h-[45vw] rounded-full bg-blue-600/10 dark:bg-blue-600/15 blur-[130px] pointer-events-none animate-float-reverse" />
 
-      {/* 2. Color Mesh: Glowing morphing gradient orbs */}
-      {bgEffect !== 'subtle' && (
-        <>
-          {/* Top-Right Glowing Orb */}
-          <div
-            className={`absolute -top-24 -right-24 w-96 sm:w-[500px] h-96 sm:h-[500px] rounded-full blur-[120px] transition-all duration-700 ${
-              reducedMotion ? '' : 'animate-pulse-slow'
-            }`}
-            style={{
-              backgroundColor: primaryColor,
-              opacity: 0.22 * opacityMultiplier,
-            }}
-          />
-
-          {/* Center-Left Vibrant Orb */}
-          <div
-            className={`absolute top-1/3 -left-32 w-80 sm:w-[480px] h-80 sm:h-[480px] rounded-full blur-[140px] transition-all duration-700 ${
-              reducedMotion ? '' : 'animate-float'
-            }`}
-            style={{
-              backgroundColor: secondaryColor,
-              opacity: 0.18 * opacityMultiplier,
-            }}
-          />
-
-          {/* Bottom-Right Tertiary Orb */}
-          <div
-            className={`absolute bottom-20 right-1/4 w-72 sm:w-[420px] h-72 sm:h-[420px] rounded-full blur-[130px] transition-all duration-700 ${
-              reducedMotion ? '' : 'animate-float-reverse'
-            }`}
-            style={{
-              backgroundColor: accentColor,
-              opacity: 0.15 * opacityMultiplier,
-            }}
-          />
-        </>
-      )}
-
-      {/* 3. Subtle minimal mode glow */}
-      {bgEffect === 'subtle' && (
-        <div
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-[160px] transition-all duration-700"
-          style={{
-            backgroundColor: primaryColor,
-            opacity: 0.08 * opacityMultiplier,
-          }}
-        />
-      )}
-
-      {/* Fine-grain background texture / grid */}
-      <div className="absolute inset-0 opacity-[0.025] dark:opacity-[0.045] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]" />
+      {/* Neural Canvas */}
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block opacity-75 dark:opacity-85"
+      />
     </div>
   );
 };
-
