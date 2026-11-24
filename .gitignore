@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+dist/
+dist-ssr/
+
+# MinGit & tools
+mingit/
+mingit.zip
+.gitconfig
+.netlify/
+test-tunnel*
+
+# Environment & logs
+*.log
+.env
+.env.*
+
+# Editor & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
