@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-accent: #00d2ff;
+    --secondary-accent: #a855f7;
+    --tertiary-accent: #ec4899;
+    --theme-bg: #070b18;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  body {
+    background-color: var(--theme-bg);
+  }
+
+  /* Theme-specific body background colors */
+  html.theme-cyberpunk body {
+    background-color: #070b18;
+  }
+  html.theme-ocean body {
+    background-color: #081120;
+  }
+  html.theme-emerald body {
+    background-color: #05110d;
+  }
+  html.theme-sunset body {
+    background-color: #140c1c;
+  }
+  html.theme-amethyst body {
+    background-color: #0f091f;
+  }
+  html.theme-paper body {
+    background-color: #fcfaf7;
+    color: #1e293b;
+  }
+  html.theme-minimal-light body {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-accent);
+  }
+
+  .light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .light ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-accent);
+  }
+}
+
+@layer utilities {
+  /* Dynamic Glassmorphism */
+  .glass-card {
+    background: rgba(12, 19, 39, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theme-ocean .glass-card {
+    background: rgba(10, 25, 47, 0.75);
+    border-color: rgba(56, 189, 248, 0.12);
+  }
+
+  .theme-emerald .glass-card {
+    background: rgba(8, 28, 20, 0.75);
+    border-color: rgba(16, 185, 129, 0.15);
+  }
+
+  .theme-sunset .glass-card {
+    background: rgba(30, 16, 40, 0.75);
+    border-color: rgba(244, 63, 94, 0.15);
+  }
+
+  .theme-amethyst .glass-card {
+    background: rgba(23, 14, 46, 0.75);
+    border-color: rgba(168, 85, 247, 0.15);
+  }
+
+  .theme-paper .glass-card {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(214, 211, 209, 0.8);
+    box-shadow: 0 4px 20px -2px rgba(120, 53, 15, 0.06);
+    color: #1e293b;
+  }
+
+  .theme-minimal-light .glass-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
+    color: #0f172a;
+  }
+
+  .glass-nav {
+    background: rgba(7, 11, 24, 0.85);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .theme-ocean .glass-nav {
+    background: rgba(8, 17, 32, 0.88);
+  }
+  .theme-emerald .glass-nav {
+    background: rgba(5, 17, 13, 0.88);
+  }
+  .theme-sunset .glass-nav {
+    background: rgba(20, 12, 28, 0.88);
+  }
+  .theme-amethyst .glass-nav {
+    background: rgba(15, 9, 31, 0.88);
+  }
+  .theme-paper .glass-nav {
+    background: rgba(252, 250, 247, 0.92);
+    border-bottom: 1px solid rgba(214, 211, 209, 0.8);
+  }
+  .theme-minimal-light .glass-nav {
+    background: rgba(248, 250, 252, 0.92);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  }
+
+  /* High contrast accessibility mode */
+  .high-contrast .glass-card {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+  }
+  .light.high-contrast .glass-card {
+    background: #ffffff !important;
+    border: 2px solid #000000 !important;
+    color: #000000 !important;
+  }
+  .high-contrast text,
+  .high-contrast p,
+  .high-contrast span {
+    color: #ffffff !important;
+  }
+  .light.high-contrast text,
+  .light.high-contrast p,
+  .light.high-contrast span {
+    color: #000000 !important;
+  }
+
+  /* Reduced motion */
+  .reduced-motion * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  /* Dynamic gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary-accent) 0%, var(--secondary-accent) 50%, var(--tertiary-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Print styles for Resume */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
