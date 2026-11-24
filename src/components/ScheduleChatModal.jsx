@@ -36,10 +36,10 @@ export const ScheduleChatModal = ({ isOpen, onClose }) => {
     const icsData = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Alex Rivera Student Portfolio//EN',
+      'PRODID:-//Dileep Sai Dasari Student Portfolio//EN',
       'BEGIN:VEVENT',
       `SUMMARY:${eventTitle}`,
-      `DESCRIPTION:Meeting scheduled via Alex Rivera Portfolio website with ${name} (${email}). Platform: ${platform}. Notes: ${notes}`,
+      `DESCRIPTION:Meeting scheduled via Dileep Sai Dasari Portfolio website with ${name} (${email}). Platform: ${platform}. Notes: ${notes}`,
       `DTSTART:${date.replace(/-/g, '')}T${time.replace(':', '')}00Z`,
       `DTEND:${date.replace(/-/g, '')}T${time.replace(':', '')}00Z`,
       `LOCATION:${platform}`,
